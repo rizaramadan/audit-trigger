@@ -13,6 +13,7 @@
 -- Should really be converted into a relocatable EXTENSION, with control and upgrade files.
 
 CREATE EXTENSION IF NOT EXISTS hstore;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE SCHEMA audit;
 REVOKE ALL ON SCHEMA audit FROM public;
@@ -37,7 +38,7 @@ COMMENT ON SCHEMA audit IS 'Out-of-table audit/history logging tables and trigge
 -- indexes and do your analysis.
 --
 CREATE TABLE audit.logged_actions (
-    event_id bigserial primary key,
+    event_id uuid primary key,
     schema_name text not null,
     table_name text not null,
     relid oid not null,
@@ -95,7 +96,7 @@ BEGIN
     END IF;
 
     audit_row = ROW(
-        nextval('audit.logged_actions_event_id_seq'), -- event_id
+        uuid_generate_v4(),                           -- event_id
         TG_TABLE_SCHEMA::text,                        -- schema_name
         TG_TABLE_NAME::text,                          -- table_name
         TG_RELID,                                     -- relation OID for much quicker searches
